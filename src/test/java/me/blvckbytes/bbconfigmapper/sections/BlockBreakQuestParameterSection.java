@@ -25,6 +25,7 @@
 package me.blvckbytes.bbconfigmapper.sections;
 
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -40,6 +41,11 @@ public class BlockBreakQuestParameterSection extends AConfigSection {
 
   @Override
   public Class<?> runtimeDecide(String field) {
+    return null;
+  }
+
+  @Override
+  public @Nullable Object defaultFor(Field field) {
     return null;
   }
 

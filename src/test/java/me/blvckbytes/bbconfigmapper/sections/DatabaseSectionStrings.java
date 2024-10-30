@@ -45,13 +45,11 @@ public class DatabaseSectionStrings extends AConfigSection {
 
   @Override
   public @Nullable Object defaultFor(Field field) {
-    switch (field.getName()) {
-      case "host":
-        return "host_default";
-      case "port":
-        return "port_default";
-    }
-    return null;
+      return switch (field.getName()) {
+          case "host" -> "host_default";
+          case "port" -> "port_default";
+          default -> null;
+      };
   }
 
   @Override

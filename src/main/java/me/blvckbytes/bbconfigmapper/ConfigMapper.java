@@ -214,7 +214,7 @@ public class ConfigMapper implements IConfigMapper {
 
     int dotIndex = path.indexOf('.');
 
-    while (path.length() > 0) {
+    while (!path.isEmpty()) {
       String key = dotIndex < 0 ? path : path.substring(0, dotIndex);
 
       if (StringUtils.isBlank(key))
@@ -226,7 +226,7 @@ public class ConfigMapper implements IConfigMapper {
       Object value = source.get(key);
 
       // Last iteration, respond with the current value
-      if (path.length() == 0) {
+      if (path.isEmpty()) {
         logger.log(Level.FINEST, () -> DebugLogSource.MAPPER + "Walk ended, returning value=" + value);
         return value;
       }
@@ -318,7 +318,7 @@ public class ConfigMapper implements IConfigMapper {
 
     IEvaluable evaluable = new ConfigValue(input, this.evaluator);
 
-    if (IEvaluable.class.isAssignableFrom(type)) {
+    if (type == IEvaluable.class) {
       logger.log(Level.FINEST, () -> DebugLogSource.MAPPER + "Returning evaluable");
       return evaluable;
     }
@@ -354,7 +354,6 @@ public class ConfigMapper implements IConfigMapper {
     logger.log(Level.FINEST, () -> DebugLogSource.MAPPER + "Resolving map field");
 
     List<Class<?>> genericTypes = getGenericTypes(f);
-    assert genericTypes != null && genericTypes.size() == 2;
 
     Map<Object, Object> result = new HashMap<>();
 
@@ -368,7 +367,7 @@ public class ConfigMapper implements IConfigMapper {
     for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
       Object resultKey;
       try {
-        resultKey = convertType(entry.getKey(), genericTypes.get(0));
+        resultKey = convertType(entry.getKey(), genericTypes.getFirst());
       } catch (MappingError error) {
         throw new MappingError(error.getMessage() + " (at the key of a map)");
       }
@@ -396,20 +395,18 @@ public class ConfigMapper implements IConfigMapper {
     logger.log(Level.FINEST, () -> DebugLogSource.MAPPER + "Resolving list field");
 
     List<Class<?>> genericTypes = getGenericTypes(f);
-    assert genericTypes != null && genericTypes.size() == 1;
 
     List<Object> result = new ArrayList<>();
 
-    if (!(value instanceof List)) {
+    if (!(value instanceof List<?> list)) {
       logger.log(Level.FINEST, () -> DebugLogSource.MAPPER + "Not a list, returning empty list");
       return result;
     }
 
-    List<?> list = (List<?>) value;
-    for (int i = 0; i < list.size(); i++) {
+      for (int i = 0; i < list.size(); i++) {
       Object itemValue;
       try {
-        itemValue = convertType(list.get(i), genericTypes.get(0));
+        itemValue = convertType(list.get(i), genericTypes.getFirst());
       } catch (MappingError error) {
         throw new MappingError(error.getMessage() + " (at index " + i + " of a list)");
       }
@@ -431,13 +428,12 @@ public class ConfigMapper implements IConfigMapper {
 
     Class<?> arrayType = f.getType().getComponentType();
 
-    if (!(value instanceof List)) {
+    if (!(value instanceof List<?> list)) {
       logger.log(Level.FINEST, () -> DebugLogSource.MAPPER + "Not a list, returning empty array");
       return Array.newInstance(arrayType, 0);
     }
 
-    List<?> list = (List<?>) value;
-    Object array = Array.newInstance(arrayType, list.size());
+      Object array = Array.newInstance(arrayType, list.size());
 
     for (int i = 0; i < list.size(); i++) {
       Object itemValue;
@@ -549,10 +545,10 @@ public class ConfigMapper implements IConfigMapper {
   private @Nullable List<Class<?>> getGenericTypes(Field f) {
     Type genericType = f.getGenericType();
 
-    if (!(genericType instanceof ParameterizedType))
+    if (!(genericType instanceof ParameterizedType parameterizedType))
       return null;
 
-    Type[] types = ((ParameterizedType) genericType).getActualTypeArguments();
+    Type[] types = parameterizedType.getActualTypeArguments();
     List<Class<?>> result = new ArrayList<>();
 
     for (Type type : types)
@@ -570,8 +566,8 @@ public class ConfigMapper implements IConfigMapper {
     if (type instanceof Class)
       return (Class<?>) type;
 
-    if (type instanceof ParameterizedType)
-      return unwrapType(((ParameterizedType) type).getRawType());
+    if (type instanceof ParameterizedType parameterizedType)
+      return unwrapType(parameterizedType.getRawType());
 
     throw new MappingError("Cannot unwrap type of class=" + type.getClass());
   }

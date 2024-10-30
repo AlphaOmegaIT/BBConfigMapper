@@ -25,6 +25,7 @@
 package me.blvckbytes.bbconfigmapper;
 
 import me.blvckbytes.gpeee.interpreter.IEvaluationEnvironment;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -38,6 +39,7 @@ public class ScalarType<T> {
   public static final ScalarType<Double> DOUBLE = new ScalarType<>(double.class, (i, e) -> e.getValueInterpreter().asDouble(i));
   public static final ScalarType<Boolean> BOOLEAN = new ScalarType<>(boolean.class, (i, e) -> e.getValueInterpreter().asBoolean(i));
   public static final ScalarType<String> STRING = new ScalarType<>(String.class, (i, e) -> e.getValueInterpreter().asString(i));
+  public static final ScalarType<Component> COMPONENT = new ScalarType<>(Component.class, (i, e) -> e.getValueInterpreter().asComponent(i));
   public static final ScalarType<String> STRING_PRESERVE_NULLS = new ScalarType<>(String.class, (i, e) -> {
     if (i == null)
       return null;
@@ -61,6 +63,7 @@ public class ScalarType<T> {
     lookupTable.put(boolean.class, BOOLEAN);
     lookupTable.put(Boolean.class, BOOLEAN);
     lookupTable.put(String.class, STRING);
+    lookupTable.put(Component.class, COMPONENT);
   }
 
   private ScalarType(Class<?> type, BiFunction<@Nullable Object, IEvaluationEnvironment, Object> interpreter) {

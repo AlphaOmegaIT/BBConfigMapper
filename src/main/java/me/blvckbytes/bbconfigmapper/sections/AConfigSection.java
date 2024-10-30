@@ -85,6 +85,7 @@ public abstract class AConfigSection {
    * Called when parsing of the section is completed
    * and no more changes will be applied
    */
+
   public void afterParsing(List<Field> fields) throws Exception {
     for (Field field : fields) {
       if (field.get(this) != null)

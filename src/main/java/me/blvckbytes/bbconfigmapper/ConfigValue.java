@@ -82,15 +82,19 @@ public class ConfigValue implements IEvaluable {
    * @return Guaranteed non-Null value of the requested type
    */
   @SuppressWarnings("unchecked")
-  protected <T> T interpretScalar(@Nullable Object input, ScalarType<T> type, IEvaluationEnvironment env) {
+  protected <T> T interpretScalar(
+          @Nullable Object input,
+          final ScalarType<T> type,
+          final IEvaluationEnvironment env
+  ) {
     Class<?> typeClass = type.getType();
 
     if (typeClass.isInstance(input))
       return (T) input;
 
     // The input is an expression which needs to be evaluated first
-    if (input instanceof AExpression)
-      input = this.evaluator.evaluateExpression((AExpression) input, env);
+    if (input instanceof AExpression aExpressionInput && this.evaluator != null)
+      input = this.evaluator.evaluateExpression(aExpressionInput, env);
 
     return (T) type.getInterpreter().apply(input, env);
   }
@@ -169,10 +173,9 @@ public class ConfigValue implements IEvaluable {
       if (input == null)
         return (T) new HashMap<>();
 
-      if (!(input instanceof Map))
+      if (!(input instanceof Map<?, ?> items))
         throw new IllegalStateException("Cannot transform type " + input.getClass().getName() + " into a map");
 
-      Map<?, ?> items = (Map<?, ?>) input;
       Map<Object, Object> results = new HashMap<>();
 
       // Interpret each value as the requested generic type
